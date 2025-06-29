@@ -1,51 +1,62 @@
 package com.example.demo.service;
 
 import com.example.demo.model.Note;
+import com.example.demo.model.User;
 import com.example.demo.repository.NoteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class NoteService {
     @Autowired
     private NoteRepository noteRepository;
 
-    public List<Note> getAllNotes() {
-        return noteRepository.findAll();
+    // Lấy tất cả ghi chú của một người dùng
+    public List<Note> getAllNotes(User user) {
+        return noteRepository.findByUser(user);
     }
 
-    public Optional<Note> getNoteById(Long id) {
-        return noteRepository.findById(id);
+    // Tìm kiếm ghi chú theo tiêu đề hoặc nội dung (giới hạn theo user)
+    public List<Note> searchNotes(User user, String keyword) {
+        List<Note> byTitle = noteRepository.findByUserAndTitleContainingIgnoreCase(user, keyword);
+        List<Note> byContent = noteRepository.findByUserAndContentContainingIgnoreCase(user, keyword);
+        Set<Note> merged = new LinkedHashSet<>();
+        merged.addAll(byTitle);
+        merged.addAll(byContent);
+        return new ArrayList<>(merged);
     }
 
-    public Note createNote(Note note) {
+    // Lấy 1 ghi chú theo ID, nếu thuộc về user
+    public Optional<Note> getNoteById(Long id, User user) {
+        return noteRepository.findByIdAndUser(id, user);
+    }
+
+    // Tạo ghi chú mới
+    public Note createNote(Note note, User user) {
+        note.setUser(user);
         note.setCreatedAt(LocalDateTime.now());
         return noteRepository.save(note);
     }
 
-    public Optional<Note> updateNote(Long id, Note newNoteData) {
-        return noteRepository.findById(id).map(note -> {
-            note.setTitle(newNoteData.getTitle());
-            note.setContent(newNoteData.getContent());
-            note.setColor(newNoteData.getColor());
-            note.setCreatedAt(LocalDateTime.now());
+    // Cập nhật ghi chú nếu thuộc về user
+    public Optional<Note> updateNote(Long id, Note updatedNote, User user) {
+        return noteRepository.findByIdAndUser(id, user).map(note -> {
+            note.setTitle(updatedNote.getTitle());
+            note.setContent(updatedNote.getContent());
+            note.setColor(updatedNote.getColor());
+            note.setCreatedAt(LocalDateTime.now()); // hoặc updatedAt nếu bạn có field đó
             return noteRepository.save(note);
         });
     }
 
-    public boolean deleteNote(Long id) {
-        if (noteRepository.existsById(id)) {
-            noteRepository.deleteById(id);
+    // Xoá ghi chú nếu thuộc về user
+    public boolean deleteNote(Long id, User user) {
+        return noteRepository.findByIdAndUser(id, user).map(note -> {
+            noteRepository.delete(note);
             return true;
-        }
-        return false;
-    }
-
-    public List<Note> searchNotes(String keyword) {
-        return noteRepository.findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(keyword, keyword);
+        }).orElse(false);
     }
 }

@@ -23,4 +23,7 @@ public class Note {
     private String color;
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }
