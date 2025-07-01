@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.Config.JwtUtil;
+import com.example.demo.dto.ChangePasswordRequest;
 import com.example.demo.dto.JwtResponse;
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.model.User;
@@ -67,6 +68,18 @@ public class UserController {
             String email = userDetails.getUsername(); // lấy từ JWT
             User updatedUser = userService.updateUser(email, fullName, phoneNumber, avatar);
             return ResponseEntity.ok(updatedUser);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changePassword(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody ChangePasswordRequest request) {
+        try {
+            userService.changePassword(userDetails.getUsername(), request);
+            return ResponseEntity.ok("Đổi mật khẩu thành công");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
