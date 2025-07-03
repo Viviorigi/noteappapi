@@ -22,7 +22,7 @@ public class Note {
     private String content;
     private String color;
     private LocalDateTime createdAt = LocalDateTime.now();
-
+    private boolean pinned = false;
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;

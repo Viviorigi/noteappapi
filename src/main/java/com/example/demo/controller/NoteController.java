@@ -5,6 +5,7 @@ import com.example.demo.model.User;
 import com.example.demo.service.NoteService;
 import com.example.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -63,6 +64,17 @@ public class NoteController {
         User user = userService.getUserByEmail(principal.getName());
         boolean deleted = noteService.deleteNote(id, user);
         return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    }
+
+    @PutMapping("/{id}/toggle-pin")
+    public ResponseEntity<?> togglePin(@PathVariable Long id, Principal principal) {
+        try {
+            User user = userService.getUserByEmail(principal.getName());
+            Note updated = noteService.togglePin(id, user);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
 }

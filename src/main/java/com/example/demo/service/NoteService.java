@@ -59,4 +59,13 @@ public class NoteService {
             return true;
         }).orElse(false);
     }
+
+    public Note togglePin(Long id, User user) {
+        Note note = noteRepository.findByIdAndUser(id, user)
+                .orElseThrow(() -> new RuntimeException("Note không tồn tại hoặc không thuộc quyền sở hữu"));
+
+        note.setPinned(!note.isPinned());
+        return noteRepository.save(note);
+    }
+
 }
